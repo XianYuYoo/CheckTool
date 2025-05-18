@@ -556,8 +556,11 @@ function extractFavicon() {
 
 // 辅助函数：创建新的监控标签页
 function createNewMonitorTab(data) {
+  // 使用基本URL，不添加参数
+  const url = chrome.runtime.getURL('index.html');
+  
   chrome.tabs.create({
-    url: chrome.runtime.getURL('index.html'),
+    url: url,
     pinned: true  // 使用固定模式打开
   }, (tab) => {
     // 等待页面加载完成后发送数据

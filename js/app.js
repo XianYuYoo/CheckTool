@@ -205,40 +205,38 @@ class WebMonitorApp {
   
   // 处理更新内容消息
   handleUpdateContent(data) {
+    console.log('处理更新内容消息:', data);
+    
     if (data.type === 'createTask') {
-      // 如果当前不在任务编辑页面，跳转过去
+      // 如果当前不在任务编辑页面，直接显示编辑表单
       const taskForm = document.getElementById('task-form');
       if (!taskForm) {
-        this.navigateToSection('tasks');
+        console.log('直接显示任务创建表单');
+        // 先加载任务页面
+        this.loadContent('tasks');
+        // 然后显示任务创建表单
         setTimeout(() => {
           this.showTaskEditForm(data);
         }, 100);
       } else {
+        console.log('当前已在任务编辑页面，直接更新表单数据');
         this.showTaskEditForm(data);
       }
     }
   }
 
   handleInitialNavigation() {
-    // 检查 URL 参数
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
-    
-    if (section) {
-      this.loadContent(section);
-      this.updateActiveNavLink(section); // 更新导航菜单状态
-      return;
-    }
-    
     // 检查 hash
     const hash = window.location.hash.replace('#', '');
     if (hash) {
+      console.log('使用hash导航:', hash);
       this.loadContent(hash);
       this.updateActiveNavLink(hash); // 更新导航菜单状态
       return;
     }
     
     // 默认加载首页
+    console.log('加载默认首页');
     this.loadContent('home');
     this.updateActiveNavLink('home'); // 确保默认页显示正确活动菜单
   }
@@ -266,6 +264,20 @@ class WebMonitorApp {
       });
     });
   }
+
+  // 清理URL参数
+  //cleanupUrlParams() {
+  //  // 如果URL中有查询参数，清理它们
+  //  if (window.location.search) {
+  //    console.log('清理URL参数:', window.location.search);
+  //    
+  //    // 使用history API替换当前URL，移除查询参数
+  //    const cleanUrl = window.location.pathname + (window.location.hash || '');
+  //    window.history.replaceState({}, document.title, cleanUrl);
+  //    
+  //    console.log('URL已清理:', window.location.href);
+  //  }
+  //}
 
   navigateToSection(section) {
     // 更新活动链接
@@ -335,6 +347,7 @@ class WebMonitorApp {
         this.setupContentRefresh('changes');
         break;
       case 'tasks':
+        // 正常初始化任务部分
         this.initTasksSection();
         // 设置任务页面的自动刷新
         this.setupContentRefresh('tasks');
@@ -344,6 +357,46 @@ class WebMonitorApp {
         break;
     }
   }
+
+  // 初始化任务页面的基本功能，不加载任务列表
+  //initTasksBasicFunctions() {
+  //  // 只初始化任务列表功能所需的基本事件监听，不加载任务数据
+  //  const addTaskBtn = document.getElementById("add-task-btn");
+  //  if (addTaskBtn) {
+  //    addTaskBtn.addEventListener("click", () => {
+  //      this.showTaskEditForm();
+  //    });
+  //  }
+  //
+  //  // 任务搜索功能
+  //  const taskSearchInput = document.getElementById("task-search");
+  //  const taskSearchBtn = document.getElementById("task-search-btn");
+  //  
+  //  if (taskSearchInput && taskSearchBtn) {
+  //    const performSearch = () => {
+  //      const searchTerm = taskSearchInput.value.trim().toLowerCase();
+  //      this.filterTasksBySearch(searchTerm);
+  //    };
+  //    
+  //    taskSearchBtn.addEventListener("click", performSearch);
+  //    taskSearchInput.addEventListener("keyup", (e) => {
+  //      if (e.key === "Enter") {
+  //        performSearch();
+  //      }
+  //    });
+  //  }
+  //
+  //  // 任务分组切换
+  //  const groupBtns = document.querySelectorAll(".group-btn");
+  //  groupBtns.forEach(btn => {
+  //    btn.addEventListener("click", () => {
+  //      groupBtns.forEach(b => b.classList.remove("active"));
+  //      btn.classList.add("active");
+  //      const group = btn.getAttribute("data-group");
+  //      this.filterTasks(group);
+  //    });
+  //  });
+  //}
 
   initHomeSection() {
     // 更新统计信息
@@ -1325,10 +1378,14 @@ class WebMonitorApp {
   initTaskForm() {
     // 表单操作
     document.getElementById("close-task-edit-btn")?.addEventListener("click", () => {
+      // 关闭表单时清理URL
+      //this.cleanupUrlParams();
       this.loadContent("tasks");
     });
     
     document.getElementById("cancel-task-btn")?.addEventListener("click", () => {
+      // 取消按钮也清理URL
+      //this.cleanupUrlParams();
       this.loadContent("tasks");
     });
     
@@ -1481,6 +1538,9 @@ class WebMonitorApp {
         await this.addTask(taskData);
         await this.alert('任务已创建', '操作成功');
       }
+      
+      // 清理URL参数
+      //this.cleanupUrlParams();
       
       // 返回任务列表
       this.loadContent('tasks');
@@ -1915,17 +1975,14 @@ class WebMonitorApp {
       const statusText = hasChanged ? '检测完成，内容已变更' : '检测完成，内容未变更';
       preview.update(result.content, false, statusText);
       
-      // 刷新相关列表
-      if (hasChanged) {
-        // 如果在任务页面，刷新任务列表
-        if (document.querySelector('.tasks-section')) {
-          this.loadTasksList();
-        }
-        
-        // 如果变更页面已打开，刷新变更列表
-        if (document.querySelector('.changes-section')) {
-          this.loadChangesList();
-        }
+      // 无论内容是否变更，都刷新任务列表以更新上次检测时间
+      if (document.querySelector('.tasks-section')) {
+        this.loadTasksList();
+      }
+      
+      // 如果内容变更，还需刷新变更列表
+      if (hasChanged && document.querySelector('.changes-section')) {
+        this.loadChangesList();
       }
     } catch (error) {
       console.error('手动检测失败:', error);
