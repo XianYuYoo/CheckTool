@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CheckTool</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <img src="icons/icon128.png" alt="CheckTool">
+        <h1>CheckTool</h1>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="#home" class="active" data-section="home">🎃首页</a></li>
+          <li><a href="#changes" data-section="changes">🔖动态</a></li>
+          <li><a href="#tasks" data-section="tasks">📑任务</a></li>
+          <li><a href="#settings" data-section="settings">💾设置</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main class="app-content">
+      <!-- 页面将通过JavaScript动态加载 -->
+      <div id="content-container"></div>
+    </main>
+    <footer class="app-footer">
+        <div class="warning">⚠️ 请至少打开一个本插件页面以防本机定时任务失效 ⚠️</div>
+        <div> Xianyu 🎈 <a href="https://github.com/Xianyu-123">问题反馈</a> </div>
+    </footer>
+
+  </div>
+
+  <!-- 模板 -->
+  <template id="home-template">
+    <div class="section home-section">
+      <div class="welcome-card">
+        <h2>😀 Hi~   宝，欢迎使用CheckTool</h2>
+        <p>这是一个帮助你监控网页内容变化的工具。</br>
+        您可以监控任意网页上的指定位置，本扩展将定期检查并在其内容发生变化时通知你。</p>
+        
+        <div class="features-guide">
+          <h3>使用指南</h3>
+          <div class="guide-section">
+            <div class="guide-item">
+              <div class="guide-icon">🖱️</div>
+              <div class="guide-content">
+                <h4>快速创建监控任务</h4>
+                <p>1. 在任意网页上，点击鼠标<strong>右键</strong></p>
+                <p>2. 在右键菜单中选择<strong>"监控此页面元素"</strong></p>
+                <p>3. 测试能否获取到内容，然后调整检查频率</p>
+                <p>4. 点击"保存"完成创建</p>
+              </div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-icon">📑</div>
+              <div class="guide-content">
+                <h4>管理监控任务</h4>
+                <p>1. 在任务列表中，可自由设置启用/禁用任务</p>
+                <p>2. 点击"手动检测"，可以立即检查内容变化</p>
+                <p>3. 使用编辑按钮修改任务设置</p>
+                <p>4. 点击任务名称旁的图标，可打开目标页面</p>
+              </div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-icon">🔖</div>
+              <div class="guide-content">
+                <h4>查看内容变更</h4>
+                <p>1. 点击"动态"标签查看所有监控到的内容变化</p>
+                <p>2. 每个变更项显示变化的时间和内容</p>
+                <p>3. 点击变更项可查看详细内容</p>
+                <p>4. 使用"清空动态"按钮可删除所有历史记录</p>
+              </div>
+            </div>
+          </div>
+          <div class="start-tip">
+            <p>🎉 最简单的开始方式：在任意网页上<strong>右键点击</strong>您想监控的内容，选择"监控此页面元素"！</p>
+          </div>
+          <div class="stats-overview">
+            <div class="stat-card">
+              <div class="stat-number" id="total-tasks">0</div>
+              <div class="stat-label">监控任务</div>
+            </div>
+          <div class="stat-card">
+            <div class="stat-number" id="active-tasks">0</div>
+            <div class="stat-label">活跃任务</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="recent-changes">0</div>
+            <div class="stat-label">最近变更</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </template>
+  
+  <template id="changes-template">
+    <div class="section changes-section">
+      <div class="section-header">
+        <h2>内容变更动态</h2>
+        <div class="section-actions">
+          <button class="btn btn-danger" id="clear-changes-btn">清空动态</button>
+        </div>
+      </div>
+      
+      <div id="changes-list" class="changes-list">
+        <div class="empty-state">
+          <p>暂无内容变更</p>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <template id="tasks-template">
+    <div class="section tasks-section">
+      <div class="section-header">
+        <h2>监控任务</h2>
+        <div class="section-actions">
+          <div class="search-container">
+            <input type="text" id="task-search" placeholder="搜索任务...">
+            <button class="btn btn-icon" id="task-search-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <button class="btn btn-primary" id="add-task-btn">添加任务</button>
+        </div>
+      </div>
+      
+      <div class="task-groups">
+        <div class="task-group-selector">
+          <button class="group-btn active" data-group="all">全部</button>
+          <button class="group-btn" data-group="active">活跃</button>
+          <button class="group-btn" data-group="inactive">未启用</button>
+        </div>
+      </div>
+      
+      <div id="tasks-list" class="tasks-list">
+        <div class="empty-state">
+          <p>暂无监控任务</p>
+          <button class="btn btn-primary" id="create-first-task-btn">创建第一个任务</button>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <template id="task-item-template">
+    <div class="task-item" data-task-id="">
+      <div class="task-icon">
+        <img src="" alt="" class="site-favicon">
+      </div>
+      <div class="task-info">
+        <div class="task-title"></div>
+        <div class="task-url"></div>
+        <div class="task-details">
+          <span class="task-last-check">上次检查: </span>
+          <span class="task-interval">检查频率: </span>
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-secondary btn-sm task-check-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12.6111L8.92308 17.5L20 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          手动检测
+        </button>
+        <label class="switch">
+          <input type="checkbox" class="task-toggle">
+          <span class="slider round"></span>
+        </label>
+        <button class="btn btn-icon task-edit-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12M17.5858 3.58579C18.3668 2.80474 19.6332 2.80474 20.4142 3.58579C21.1953 4.36683 21.1953 5.63316 20.4142 6.41421L11.8284 15H9L9 12.1716L17.5858 3.58579Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="btn btn-icon task-delete-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </template>
+  
+  <template id="settings-template">
+    <div class="section settings-section">
+      <div class="section-header">
+        <h2>设置</h2>
+      </div>
+      
+      <div class="settings-form">
+        <div class="setting-group">
+          <h3>通知设置</h3>
+          
+          <div class="setting-item">
+            <label for="enable-notifications">启用通知</label>
+            <div class="setting-control">
+              <label class="switch">
+                <input type="checkbox" id="enable-notifications" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>监控设置</h3>
+          
+          <div class="setting-item">
+            <label for="default-check-interval">默认检查间隔 (分钟)</label>
+            <div class="setting-control">
+              <input type="number" id="default-check-interval" min="1" value="60">
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <label for="retry-on-error">网络错误时重试</label>
+            <div class="setting-control">
+              <label class="switch">
+                <input type="checkbox" id="retry-on-error" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <label for="max-retries">最大重试次数</label>
+            <div class="setting-control">
+              <input type="number" id="max-retries" min="1" max="10" value="3">
+            </div>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>存储设置</h3>
+          
+          <div class="setting-item">
+            <label for="max-history">保留历史记录数量</label>
+            <div class="setting-control">
+              <input type="number" id="max-history" min="10" max="1000" value="100">
+            </div>
+          </div>
+          
+          <div class="setting-actions">
+            <button class="btn btn-danger" id="clear-data-btn">清除所有数据</button>
+            <button class="btn btn-secondary" id="export-data-btn">导出数据</button>
+            <button class="btn btn-secondary" id="import-data-btn">导入数据</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="settings-actions">
+        <button class="btn btn-primary" id="save-settings-btn">保存设置</button>
+        <button class="btn btn-secondary" id="reset-settings-btn">恢复默认</button>
+      </div>
+    </div>
+  </template>
+  
+  <template id="task-edit-template">
+    <div class="section task-edit-section">
+      <div class="section-header">
+        <h2>编辑监控任务</h2>
+        <button class="btn btn-icon" id="close-task-edit-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      
+      <form id="task-form" class="task-edit-form">
+        <div class="form-group">
+          <label for="task-title">任务名称</label>
+          <input type="text" id="task-title" placeholder="为此监控任务命名" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="task-url">监控网址</label>
+          <div class="url-input-group">
+            <input type="url" id="task-url" placeholder="https://example.com" required>
+            <button type="button" class="btn btn-primary" id="select-element-btn">选择元素</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="favicon-url">网站图标URL</label>
+          <div class="favicon-input-group">
+            <img id="url-favicon-img" src="icons/icon16.png" alt="网站图标" class="favicon-preview">
+            <input type="url" id="favicon-url" placeholder="https://example.com/favicon.ico">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="selector-type">选择器类型</label>
+          <select id="selector-type">
+            <option value="css">CSS 选择器</option>
+            <option value="xpath">XPath 选择器</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="css-selector-group">
+          <label for="selector-value">CSS 选择器</label>
+          <div class="selector-input-group">
+            <input type="text" id="selector-value" placeholder="#content .main-text">
+            <button type="button" class="btn btn-secondary" id="test-selector-btn">测试</button>
+          </div>
+          
+        <div class="start-tip">
+          <p>📢 请在保存任务前，测试选择器是否能获取到内容</p>
+        </div>
+        </div>
+        
+        <div class="form-group" id="xpath-selector-group" style="display: none;">
+          <label for="xpath-selector-value">XPath 选择器</label>
+          <div class="selector-input-group">
+            <input type="text" id="xpath-selector-value" placeholder="//div[@id='content']">
+            <button type="button" class="btn btn-secondary" id="test-selector-btn">测试</button>
+          </div>
+          
+        <div class="start-tip">
+          <p>📢 请在保存任务前，测试选择器是否能获取到内容</p>
+        </div>
+        </div>
+
+          <div id="selector-test-result" class="selector-test-result" style="display: none;"></div>
+             
+        <div class="form-group">
+          <label for="interval-value">检查频率</label>
+          <div class="interval-input-group">
+            <input type="number" id="interval-value" min="1" value="60">
+            <select id="interval-unit">
+              <option value="minutes">分钟</option>
+              <option value="hours">小时</option>
+              <option value="days">天</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">保存任务</button>
+          <button type="button" class="btn btn-secondary" id="cancel-task-btn">取消</button>
+        </div>
+      </form>
+    </div>
+  </template>
+
+  <!-- 脚本 -->
+  <script src="js/app.js" type="module"></script>
+</body>
+</html> 

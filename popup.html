@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网页内容监控</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .header img {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+    }
+    .header h1 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      background-color: #4a6cf7;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .btn:hover {
+      background-color: #3a5de7;
+    }
+    .description {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 15px;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-size: 12px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-weight: bold;
+      font-size: 16px;
+      color: #4a6cf7;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon128.png" alt="网页内容监控">
+    <h1>CheckTool</h1>
+  </div>
+  
+  <div class="description">
+    监控网页内容变化，及时获取最新信息
+  </div>
+  
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-value" id="total-tasks">0</div>
+      <div>总任务</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="active-tasks">0</div>
+      <div>活跃任务</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="recent-changes">0</div>
+      <div>最近变更</div>
+    </div>
+  </div>
+  
+  <button class="btn" id="open-dashboard">打开控制面板</button>
+  <button class="btn" id="monitor-current">监控当前页面</button>
+  
+  <script src="js/popup.js"></script>
+</body>
+</html> 
